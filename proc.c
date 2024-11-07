@@ -77,18 +77,16 @@ allocproc(void)
   char *sp;
 
   acquire(&ptable.lock);
-
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == UNUSED)
       goto found;
-
   release(&ptable.lock);
   return 0;
 
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-
+  p->nice = 3;  // added this line to set default nice value
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -531,4 +529,21 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+//this is a helper function to to find a process by pid
+struct proc*
+findproc(int pid)
+{
+  struct proc *p;
+  
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if(p->pid == pid && p->state != UNUSED) {
+      release(&ptable.lock);
+      return p;
+    }
+  }
+  release(&ptable.lock);
+  return 0;
 }

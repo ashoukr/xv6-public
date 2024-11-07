@@ -89,3 +89,38 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+
+int
+sys_nice(void)
+{
+  int pid;
+  int value;
+  struct proc *p;
+  
+  // Get arguments from user space
+  if(argint(0, &pid) < 0 || argint(1, &value) < 0)
+    return -1;
+    
+  // Validate nice value range (1-5)
+  if(value < 1 || value > 5)
+    return -1;
+    
+  // If pid is 0, use current process
+  if(pid == 0) {
+    p = myproc();
+  } else {
+    p = findproc(pid);
+    if(p == 0)
+      return -1;  // Process not found
+  }
+  
+  // Store old value to return
+  int oldvalue = p->nice;
+  
+  // Set new nice value
+  p->nice = value;
+  
+  // Return pid and old nice value concatenated
+  return (pid << 16) | (oldvalue & 0xFFFF);
+}
