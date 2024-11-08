@@ -109,10 +109,13 @@ sys_nice(void)
   // If pid is 0, use current process
   if(pid == 0) {
     p = myproc();
+    pid = p->pid;
   } else {
     p = findproc(pid);
-    if(p == 0)
+    if(p == 0) {
+      cprintf("process does not exist\n");
       return -1;  // Process not found
+    }
   }
   
   // Store old value to return
@@ -121,6 +124,6 @@ sys_nice(void)
   // Set new nice value
   p->nice = value;
   
-  // Return pid and old nice value concatenated
+  // Return pid and old value concatenated
   return (pid << 16) | (oldvalue & 0xFFFF);
 }

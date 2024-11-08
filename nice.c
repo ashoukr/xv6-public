@@ -14,25 +14,24 @@ main(int argc, char *argv[])
   }
   
   if(argc == 2) {
-    // Only value provided, use current process
-    pid = 0;  // Will be replaced with current pid in system call
+    // Only value provided - use for current process
     value = atoi(argv[1]);
+    ret = nice(0, value);  // 0 means current process
+    if(ret < 0) {
+      printf(2, "nice: failed to set priority - value must be between 1 and 5\n");
+      exit();
+    }
+    printf(1, "%d %d\n", (ret >> 16) & 0xFFFF, ret & 0xFFFF);
   } else {
     // Both pid and value provided
     pid = atoi(argv[1]);
     value = atoi(argv[2]);
+    ret = nice(pid, value);
+    if(ret < 0) {
+      printf(2, "nice: failed to set priority - process does not exist or invalid value\n");
+      exit();
+    }
+    printf(1, "%d %d\n", (ret >> 16) & 0xFFFF, ret & 0xFFFF);
   }
-  
-  ret = nice(pid, value);
-  if(ret < 0) {
-    printf(2, "nice: failed to set priority\n");
-    exit();
-  }
-  
-  // Extract returned pid and old value
-  int returned_pid = (ret >> 16) & 0xFFFF;
-  int old_value = ret & 0xFFFF;
-  
-  printf(1, "%d %d\n", returned_pid, old_value);
   exit();
 }
